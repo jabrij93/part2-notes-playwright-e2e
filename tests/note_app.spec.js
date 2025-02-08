@@ -52,10 +52,17 @@ describe('Note app', () => {
       })
   
       test('importance can be changed', async ({ page }) => {
-        await expect(page.getByText('another note by playwright')).toBeVisible()
-        await page.getByRole('button', { name: 'make important' }).click()
+        // Ensure the new note is visible before proceeding
+        const note = page.locator('li.note', { hasText: 'another note by playwright' })
+        await expect(note).toBeVisible()
+      
+        // Click the "make important" button inside this specific note
+        await note.getByRole('button', { name: 'make important' }).click()
+      
+        // Ensure the text updates to "make not important"
         await expect(note.getByRole('button', { name: 'make not important' })).toBeVisible()
       })
+      
     })
   })  
 })
