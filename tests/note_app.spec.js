@@ -54,6 +54,10 @@ describe('Note app', () => {
       test('importance can be changed', async ({ page }) => {
         const note = page.locator('li.note', { hasText: 'another note by playwright' })
         await expect(note).toBeVisible()
+        // Debugging step: Log the button text before clicking
+        console.log(await note.getByRole('button').innerText())
+        
+        await note.getByRole('button', { name: 'make important' }).waitFor()
         await note.getByRole('button', { name: 'make important' }).click()
         await expect(note.getByRole('button', { name: 'make not important' })).toBeVisible()
       })
