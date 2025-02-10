@@ -52,16 +52,39 @@ describe('Note app', () => {
       })
   
       test('importance can be changed', async ({ page }) => {
-        const note = page.locator('li.note', { hasText: 'another note by playwright' })
+        const note = page.locator('li.note', { hasText: 'another note by playwright' }).first()
         await expect(note).toBeVisible()
-        // Debugging step: Log the button text before clicking
-        console.log(await note.getByRole('button').innerText())
-        
-        await note.getByRole('button', { name: 'make important' }).waitFor()
-        await note.getByRole('button', { name: 'make important' }).click()
-        await expect(note.getByRole('button', { name: 'make not important' })).toBeVisible()
+
+        // 🔍 Debugging: Log all buttons inside the note before clicking
+        const buttonsBefore = await note.getByRole('button').allInnerTexts()
+        console.log('All buttons before click:', buttonsBefore)
+
+        // Get the button inside the note and wait for it to be visible
+        const button = note.getByRole('button')
+        await expect(button).toBeVisible()
+
+        // Get the initial button text
+        const buttonBefore = await button.innerText()
+        console.log('Before click:', buttonBefore)
+
+        // Click the button
+        await button.click({ force: true })
+
+        // 🔍 Debugging: Log all buttons after clicking
+        const buttonsAfter = await note.getByRole('button').allInnerTexts()
+        console.log('All buttons after click:', buttonsAfter)
+
+        // ✅ Wait for the updated button to appear
+        const newButton = note.getByRole('button', { name: buttonBefore === 'make important' ? 'make not important' : 'make important' })
+        await expect(newButton).toBeVisible()
+
+        // Get the button text after clicking
+        const buttonAfter = await newButton.innerText()
+        console.log('After click:', buttonAfter)
+
+        // Check if the text actually changed
+        expect(buttonAfter).not.toBe(buttonBefore)
       })
-      
     })
   })  
 })
