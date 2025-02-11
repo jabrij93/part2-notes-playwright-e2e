@@ -69,17 +69,18 @@ describe('Note app', () => {
 
         // Click the button
         await button.click({ force: true })
+        console.log('✅ Button clicked!')
 
+        // ✅ Wait for the button text to change
+        const newButtonText = buttonBefore === 'make important' ? 'make not important' : 'make important'
+        await page.waitForSelector(`button:text("${newButtonText}")`, { timeout: 5000 })
+        
         // 🔍 Debugging: Log all buttons after clicking
         const buttonsAfter = await note.getByRole('button').allInnerTexts()
         console.log('All buttons after click:', buttonsAfter)
 
-        // ✅ Wait for the updated button to appear
-        const newButton = note.getByRole('button', { name: buttonBefore === 'make important' ? 'make not important' : 'make important' })
-        await expect(newButton).toBeVisible()
-
         // Get the button text after clicking
-        const buttonAfter = await newButton.innerText()
+        const buttonAfter = await button.innerText()
         console.log('After click:', buttonAfter)
 
         // Check if the text actually changed
