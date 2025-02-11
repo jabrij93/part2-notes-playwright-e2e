@@ -60,29 +60,34 @@ describe('Note app', () => {
         console.log('All buttons before click:', buttonsBefore)
 
         // Get the button inside the note and wait for it to be visible
-        const button = note.getByRole('button')
-        await expect(button).toBeVisible()
+        await expect(note.getByRole('button')).toBeVisible()
 
         // Get the initial button text
-        const buttonBefore = await button.innerText()
+        const buttonBefore = await note.getByRole('button').innerText()
         console.log('Before click:', buttonBefore)
 
         // Click the button
-        await button.click({ force: true })
+        await note.getByRole('button').click({ force: true })
         console.log('✅ Button clicked!')
-        console.log(await page.content())
 
-        // ✅ Wait for the button text to change
-        const newButtonText = buttonBefore === 'make important' ? 'make not important' : 'make important'
-        await page.waitForSelector(`button:text("${newButtonText}")`, { timeout: 5000 })
+        // ✅ Wait for the API response before checking UI
+        await page.waitForResponse(response => 
+            response.url().includes('/api/notes') && response.status() === 200
+        )
         
+        // ✅ Re-select the button AFTER the API response
+        const updatedButton = note.getByRole('button')
+
+        // ✅ Now wait for the text to update
+        await expect(updatedButton).toHaveText(buttonBefore === 'make important' ? 'make not important' : 'make important')
+
+        // Get the button text after clicking
+        const buttonAfter = await updatedButton.innerText()
+        console.log('After click:', buttonAfter)
+
         // 🔍 Debugging: Log all buttons after clicking
         const buttonsAfter = await note.getByRole('button').allInnerTexts()
         console.log('All buttons after click:', buttonsAfter)
-
-        // Get the button text after clicking
-        const buttonAfter = await button.innerText()
-        console.log('After click:', buttonAfter)
 
         // Check if the text actually changed
         expect(buttonAfter).not.toBe(buttonBefore)
