@@ -70,6 +70,7 @@ describe('Note app', () => {
         // Click the button
         await button.click({ force: true })
         console.log('✅ Button clicked!')
+        console.log(await page.content())
 
         // ✅ Wait for the button text to change
         const newButtonText = buttonBefore === 'make important' ? 'make not important' : 'make important'
