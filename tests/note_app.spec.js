@@ -55,41 +55,31 @@ describe('Note app', () => {
         const note = page.locator('li.note', { hasText: 'another note by playwright' }).first()
         await expect(note).toBeVisible()
 
-        // 🔍 Debugging: Log all buttons inside the note before clicking
         const buttonsBefore = await note.getByRole('button').allInnerTexts()
         console.log('All buttons before click:', buttonsBefore)
 
-        // Get the button inside the note and wait for it to be visible
         await expect(note.getByRole('button')).toBeVisible()
 
-        // Get the initial button text
         const buttonBefore = await note.getByRole('button').innerText()
         console.log('Before click:', buttonBefore)
 
-        // Click the button
         await note.getByRole('button').click({ force: true })
         console.log('✅ Button clicked!')
 
-        // ✅ Wait for the API response before checking UI
         await page.waitForResponse(response => 
             response.url().includes('/api/notes') && response.status() === 200
         )
         
-        // ✅ Re-select the button AFTER the API response
         const updatedButton = note.getByRole('button')
 
-        // ✅ Now wait for the text to update
         await expect(updatedButton).toHaveText(buttonBefore === 'make important' ? 'make not important' : 'make important')
 
-        // Get the button text after clicking
         const buttonAfter = await updatedButton.innerText()
         console.log('After click:', buttonAfter)
 
-        // 🔍 Debugging: Log all buttons after clicking
-        const buttonsAfter = await note.getByRole('button').allInnerTexts()
+        const buttonsAfter = await note.getByRole('button').allInnerTexts();
         console.log('All buttons after click:', buttonsAfter)
 
-        // Check if the text actually changed
         expect(buttonAfter).not.toBe(buttonBefore)
       })
     })
