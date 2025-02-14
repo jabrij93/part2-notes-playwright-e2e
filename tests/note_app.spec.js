@@ -41,7 +41,14 @@ describe('Note app', () => {
       await page.getByRole('button', { name: 'Add Note' }).click()
       await page.getByRole('textbox').fill('a note created by playwright')
       await page.getByRole('button', { name: 'save' }).click()
-      await expect(await page.getByText('a note created by playwright')).toBeVisible()
+
+      // Debug: Wait a bit and log all notes
+      await page.waitForTimeout(1000);
+      const allNotes = await page.locator('li.note').allInnerTexts();
+      console.log('All notes in DOM:', allNotes);
+
+      // Use UI-based waiting instead of API response
+      await expect(page.locator('li.note').last()).toHaveText('a note created by playwright', { timeout: 5000 })
     })
 
     describe('and a note exists', () => {
@@ -49,38 +56,37 @@ describe('Note app', () => {
         await page.getByRole('button', { name: 'Add Note' }).click()
         await page.getByRole('textbox').fill('another note by playwright')
         await page.getByRole('button', { name: 'save' }).click()
+
+        // Debug: Wait a bit and log all notes
+        await page.waitForTimeout(1000);
+        const allNotes = await page.locator('li.note').allInnerTexts();
+        console.log('All notes in DOM:', allNotes);
       })
   
       test('importance can be changed', async ({ page }) => {
         const note = page.locator('li.note', { hasText: 'another note by playwright' }).first()
+        
+        // Debug: Log all notes before assertion
+        const allNotes = await page.locator('li.note').allInnerTexts();
+        console.log('All notes:', allNotes);
+      
         await expect(note).toBeVisible()
-
-        const buttonsBefore = await note.getByRole('button').allInnerTexts()
-        console.log('All buttons before click:', buttonsBefore)
-
-        await expect(note.getByRole('button')).toBeVisible()
-
+      
         const buttonBefore = await note.getByRole('button').innerText()
         console.log('Before click:', buttonBefore)
-
+      
         await note.getByRole('button').click({ force: true })
-        console.log('✅ Button clicked!')
-
+      
         await page.waitForResponse(response => 
             response.url().includes('/api/notes') && response.status() === 200
         )
-        
+      
         const updatedButton = note.getByRole('button')
-
+      
         await expect(updatedButton).toHaveText(buttonBefore === 'make important' ? 'make not important' : 'make important')
-
+      
         const buttonAfter = await updatedButton.innerText()
         console.log('After click:', buttonAfter)
-
-        const buttonsAfter = await note.getByRole('button').allInnerTexts();
-        console.log('All buttons after click:', buttonsAfter)
-
-        expect(buttonAfter).not.toBe(buttonBefore)
       })
     })
   })  
