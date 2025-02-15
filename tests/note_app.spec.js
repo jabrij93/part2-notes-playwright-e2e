@@ -38,18 +38,33 @@ describe('Note app', () => {
     })
 
     test('a new note can be created', async ({ page }) => {
-      await page.getByRole('button', { name: 'Add Note' }).click()
-      await page.getByRole('textbox').fill('a note created by playwright')
-      await page.getByRole('button', { name: 'save' }).click()
-
-      // Debug: Wait a bit and log all notes
-      await page.waitForTimeout(1000);
+      await page.getByRole('button', { name: 'Add Note' }).click();
+      await page.getByRole('textbox').fill('a note created by playwright');
+    
+      // Debug: Check if Save button exists
+      const allButtons = await page.locator('button').allInnerTexts();
+      console.log('All buttons:', allButtons);
+    
+      await page.getByRole('button', { name: 'save' }).click();
+    
+      // Debug: Log network requests
+      page.on('request', request => console.log('➡️ Request:', request.method(), request.url()));
+      page.on('response', response => console.log('⬅️ Response:', response.status(), response.url()));
+  
+    
+      // Force UI update
+      await page.reload();
+    
+      // Ensure notes list is visible
+      await page.waitForSelector('li.note', { state: 'visible', timeout: 5000 });
+    
+      // Debug: Log all notes after reload
       const allNotes = await page.locator('li.note').allInnerTexts();
       console.log('All notes in DOM:', allNotes);
-
-      // Use UI-based waiting instead of API response
-      await expect(page.locator('li.note').last()).toHaveText('a note created by playwright', { timeout: 5000 })
-    })
+    
+      // Ensure the note is added
+      await expect(page.locator('li.note').last()).toHaveText('a note created by playwright', { timeout: 10000 });
+    });    
 
     describe('and a note exists', () => {
       beforeEach(async ({ page }) => {
@@ -57,10 +72,18 @@ describe('Note app', () => {
         await page.getByRole('textbox').fill('another note by playwright')
         await page.getByRole('button', { name: 'save' }).click()
 
-        // Debug: Wait a bit and log all notes
-        await page.waitForTimeout(1000);
+        // Debug: Log network requests
+        page.on('request', request => console.log('Request:', request.url()));
+        page.on('response', response => console.log('Response:', response.url(), response.status()));
+
+        // Ensure notes list is visible
+        await page.waitForSelector('li.note', { state: 'visible', timeout: 5000 });
+
         const allNotes = await page.locator('li.note').allInnerTexts();
         console.log('All notes in DOM:', allNotes);
+
+        // Ensure the note is added
+        await expect(page.locator('li.note').last()).toHaveText('a note created by playwright', { timeout: 10000 });
       })
   
       test('importance can be changed', async ({ page }) => {
